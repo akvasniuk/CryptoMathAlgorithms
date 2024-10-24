@@ -289,29 +289,3 @@ processInput(asciiInput, asciiKey);
 // let binaryInput = "0100000101000010010000110100010001000101010001100100011101001000";
 // let binaryKey = "0001001100110100010101110111100110011011101111001101111111110001";
 // processInput(binaryInput, binaryKey);
-
-
-// let key = bin("133457799BBCDFF1"); // hex
-// let msg = bin("0123456789ABCDEF"); // hex
-// console.log("Key in binary: ", key);
-// console.log("Message in binary: ", msg);
-
-// let enc = encode(msg, key);
-
-//console.log(enc); // => 85E813540F0AB405
-//console.log(decode(bin(enc), key)); // => 0123456789ABCDEF
-
-// Triple DES (3DES) Example
-// Variant 2: Two keys (K1 = K3)
-
-// let key2 = bin("0DAE3BF4ECCAD161");
-
-// let tripleEnc = encode(msg, key);
-// tripleEnc = decode(bin(tripleEnc), key2);
-// tripleEnc = encode(bin(tripleEnc), key);
-// console.log(tripleEnc); // => DDF3FFA6F0FC22DC
-
-// let tripleDec = decode(bin(tripleEnc), key);
-// tripleDec = encode(bin(tripleDec), key2);
-// tripleDec = decode(bin(tripleDec), key);
-// console.log(tripleDec); // => 0123456789ABCDEF
