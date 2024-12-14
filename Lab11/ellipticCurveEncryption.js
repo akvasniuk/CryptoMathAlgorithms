@@ -71,6 +71,8 @@ function addPoints(P, Q, a, mod) {
   while (x3 < 0) x3 += mod;
   while (y3 < 0) y3 += mod;
 
+  if (P !== "O" && Q !== "0") checkIfPointBelongsToCurve(x3, y3);
+
   return [x3, y3];
 }
 
@@ -102,8 +104,11 @@ function multiplyPoint(k, P, a, p) {
   while (k > 0) {
     if (k & 1) {
       result = addPoints(result, addend, a, p);
+      if (result !== "O") checkIfPointBelongsToCurve(result[0], result[1]);
     }
     addend = addPoints(addend, addend, a, p); // Подвоєння точки
+    if (addend !== "O") checkIfPointBelongsToCurve(addend[0], addend[1]);
+
     k >>= 1; // Ділення на 2
   }
 
@@ -116,6 +121,7 @@ function encryptMessage(Pm, k, PB, G, a, mod) {
   const kG = multiplyPoint(k, G, a, mod);
   // Pm + k × PB
   const kPB = multiplyPoint(k, PB, a, mod);
+  checkIfPointBelongsToCurve(kPB[0], kPB[1]);
   const C2 = addPoints(Pm, kPB, a, mod);
 
   return { C1: kG, C2: C2 };
@@ -125,12 +131,22 @@ function encryptMessage(Pm, k, PB, G, a, mod) {
 function decryptMessage(C1, C2, nB, a, mod) {
   // nB × C1
   const nBC1 = multiplyPoint(nB, C1, a, mod);
+  checkIfPointBelongsToCurve(nBC1[0], nBC1[1]);
   // Обернення nB × C1
   const inverseNBC1 = [nBC1[0], (-nBC1[1] + mod) % mod];
+  checkIfPointBelongsToCurve(inverseNBC1[0], inverseNBC1[1]);
+
   // Pm = C2 - (nB × C1)
   const Pm = addPoints(C2, inverseNBC1, a, mod);
 
   return Pm;
+}
+
+function checkIfPointBelongsToCurve(x, y, a = 1, b = 1) {
+  const rhs = (Math.pow(x, 3) + a * x + b) % mod; // Права частина рівняння: x^3 + ax + b (mod p)
+  const lhs = Math.pow(y, 2) % mod; // Ліва частина рівняння: y^2 (mod p)
+
+  if (rhs !== lhs) throw new Error(`Точка(x=${x}, y=${y}) не належить кривій`);
 }
 
 // Параметри еліптичної кривої
@@ -139,6 +155,8 @@ const b = 1; // Коефіцієнт b в рівнянні
 const mod = 23; // Модуль p
 const G = [17, 20]; // Генераторна точка
 
+checkIfPointBelongsToCurve(G[0], G[1]);
+
 // Випадкове число k для шифрування
 const k = 15;
 
@@ -146,12 +164,28 @@ const k = 15;
 const nB = 6; // Закритий ключ B
 const PB = multiplyPoint(nB, G, a, mod); // Відкритий ключ B
 
-console.log(" a = " + a + " b = " + b + " p = " + mod 
-  + " G = (" + G + ") " + " закритий ключ B = " + nB 
-  + " випадкове число k = " + k);
+checkIfPointBelongsToCurve(PB[0], PB[1]);
+
+console.log(
+  " a = " +
+    a +
+    " b = " +
+    b +
+    " p = " +
+    mod +
+    " G = (" +
+    G +
+    ") " +
+    " закритий ключ B = " +
+    nB +
+    " випадкове число k = " +
+    k
+);
 
 // Повідомлення Pm, яке потрібно зашифрувати
-const Pm = [15, 18]; // Повідомлення як точка на кривій
+const Pm = [5, 19]; // Повідомлення як точка на кривій
+checkIfPointBelongsToCurve(Pm[0], Pm[1]);
+
 console.log("Повідомлення для шифрування: (" + Pm + ")");
 
 // Шифрування
@@ -159,14 +193,18 @@ const { C1, C2 } = encryptMessage(Pm, k, PB, G, a, mod);
 console.log("Зашифроване повідомлення:");
 console.log("C1 = (" + C1[0] + ", " + C1[1] + ")");
 console.log("C2 = (" + C2[0] + ", " + C2[1] + ")");
+checkIfPointBelongsToCurve(C1[0], C1[1]);
+checkIfPointBelongsToCurve(C2[0], C2[1]);
 
 // Розшифрування
 const decryptedPm = decryptMessage(C1, C2, nB, a, mod);
+checkIfPointBelongsToCurve(decryptedPm[0], decryptedPm[1]);
+
 console.log("Розшифроване повідомлення:");
 console.log("Pm = (" + decryptedPm[0] + ", " + decryptedPm[1] + ")");
 
 module.exports = {
   encryptMessage,
   decryptMessage,
-  multiplyPoint
-}
+  multiplyPoint,
+};

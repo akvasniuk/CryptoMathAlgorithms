@@ -74,6 +74,13 @@ function addPoints(P, Q, a, mod) {
   return [x3, y3];
 }
 
+function checkIfPointBelongsToCurve(x, y, a = 1, b = 1) {
+  const rhs = (Math.pow(x, 3) + a * x + b) % mod; // Права частина рівняння: x^3 + ax + b (mod p)
+  const lhs = Math.pow(y, 2) % mod; // Ліва частина рівняння: y^2 (mod p)
+
+  if (rhs !== lhs) throw new Error(`Точка(x=${x}, y=${y}) не належить кривій`);
+}
+
 function findOrder(G, a, b, mod) {
   let P = G;
   const O = "O"; // Нейтральний елемент
@@ -85,6 +92,10 @@ function findOrder(G, a, b, mod) {
     const [x, y] = P;
     order++;
     console.log(order + "G = (" + x + "," + y + ")");
+
+    if (P !== "O") {
+      checkIfPointBelongsToCurve(x, y);
+    }
 
     if (P === "O") {
       break;
@@ -102,8 +113,10 @@ function multiplyPoint(k, P, a, p) {
   while (k > 0) {
     if (k & 1) {
       result = addPoints(result, addend, a, p);
+      if (result !== "O") checkIfPointBelongsToCurve(result[0], result[1]);
     }
     addend = addPoints(addend, addend, a, p); // Подвоєння точки
+    if (addend !== "O") checkIfPointBelongsToCurve(addend[0], addend[1]);
     k >>= 1; // Ділення на 2
   }
 
@@ -115,14 +128,17 @@ const a = 1; // Коефіцієнт a в рівнянні
 const b = 1; // Коефіцієнт b в рівнянні
 const mod = 23; // Модуль
 const G = [17, 20]; // Базова точка
-const k = 63; // число
 
+checkIfPointBelongsToCurve(G[0], G[1]);
+
+//const k = 63; // число
 // const kPB = multiplyPoint(k, G, a, mod);
+//checkIfPointBelongsToCurve(kPB[0], kPB[1]);
 // console.log(`k × G = (${kPB[0]}, ${kPB[1]})`);
 
 const order = findOrder(G, a, b, mod);
 console.log(`Порядок точки G = (${G[0]}, ${G[1]}) дорівнює:`, order);
 
 module.exports = {
-  findOrder
-}
+  findOrder,
+};
